@@ -1,88 +1,77 @@
 # Bun có dùng được với Appium không?
 
-## Kết luận nhanh
+## Câu trả lời nhanh
 
-| Tình huống | Bun | npm | Khuyến nghị |
-|---|---|---|---|
-| Cài Appium server (`appium` package) | Không chính thức | Chính thức hỗ trợ | Dùng **npm** |
-| Cài WebdriverIO và dependencies test | Hoạt động | Hoạt động | Tùy chọn |
-| Chạy Appium server (`appium` CLI) | Cần Node.js | Cần Node.js | Không liên quan |
-
-**Tóm lại: Dùng `npm` để cài Appium. Bun có thể dùng cho phần còn lại nhưng không được hỗ trợ chính thức.**
-
----
-
-## Chi tiết
-
-### Appium server yêu cầu gì?
-
-Appium 3 yêu cầu:
-- Node.js `^20.19.0 || ^22.12.0 || >=24.0.0`
-- npm `>=10.0.0`
+**Dùng npm cho Appium server. Bun cho phần còn lại thì tùy.**
 
 Tài liệu chính thức của Appium ghi rõ:
-
 > "Appium can be installed using npm (other package managers are not currently supported)"
-
-### Tại sao Bun gặp vấn đề với Appium server?
-
-Appium server là một Node.js process chạy các driver (UiAutomator2, XCUITest...). Các driver này được cài qua CLI riêng của Appium (`appium driver install`), không phải qua `package.json`. Nếu Bun cài `appium`, đường dẫn binary và quản lý driver có thể bị lệch.
-
-### Bun dùng được ở đâu trong dự án này?
-
-```
-learn-appium-with-javascript/
-├── package.json          ← Bun install hoạt động OK cho test deps
-├── tests/                ← Bun có thể chạy test (nếu runner hỗ trợ)
-└── appium (CLI toàn cục) ← Phải cài bằng npm -g
-```
-
-Bun chạy hầu hết npm packages kể từ v1.0+. WebdriverIO và các test dependencies thường hoạt động bình thường với Bun.
 
 ---
 
-## Hướng dẫn setup thực tế
+## Giải thích đơn giản
 
-### Cài Appium (bắt buộc dùng npm)
+### npm, pnpm, Bun là gì?
+
+Tất cả đều là **package manager** — công cụ dùng để tải thư viện về máy. Giống như bạn có thể dùng Shopee, Lazada, hay Tiki để mua hàng — cuối cùng bạn cũng nhận được hàng, nhưng cách hoạt động và tốc độ khác nhau.
+
+| Package manager | Đặc điểm | Tốc độ install |
+|---|---|---|
+| npm | Mặc định của Node.js, được hỗ trợ nhiều nhất | Trung bình |
+| pnpm | Tiết kiệm ổ cứng, nhanh hơn npm | Nhanh |
+| Bun | Rất nhanh, dùng engine riêng (không phải Node.js) | Nhanh nhất |
+
+### Tại sao Appium server cần npm?
+
+Appium không chỉ là một thư viện thông thường. Nó là **một server** (chương trình chạy nền). Khi bạn cài `appium` bằng npm, npm không chỉ tải code về — nó còn đăng ký lệnh `appium` vào hệ thống để bạn gõ được ở terminal.
+
+Bun quản lý binary (lệnh dòng lệnh) khác với npm. Vì Appium chưa test với Bun, nên không đảm bảo lệnh `appium` và `appium driver install` sẽ hoạt động đúng.
+
+---
+
+## Bức tranh rõ hơn
+
+```
+Dự án Appium của bạn gồm 2 phần:
+
+┌─────────────────────────────────┐    ┌─────────────────────────────────┐
+│  Appium Server (cài toàn cục)   │    │  Test project của bạn           │
+│                                  │    │                                  │
+│  npm install -g appium           │    │  npm install   (hoặc bun install)│
+│  appium driver install ...       │    │  webdriverio, mocha...          │
+│                                  │    │                                  │
+│  → PHẢI DÙNG npm                 │    │  → Bun thường OK, nhưng         │
+│                                  │    │    không chính thức hỗ trợ      │
+└─────────────────────────────────┘    └─────────────────────────────────┘
+```
+
+---
+
+## Kết luận thực tế
+
+**Kịch bản bạn đang học → Dùng npm cho tất cả.** Đơn giản, không có rủi ro, được hỗ trợ chính thức.
 
 ```bash
-# Cài Appium server toàn cục - PHẢI dùng npm
+# ✅ Cách khuyến nghị — dùng npm cho tất cả
 npm install -g appium
-
-# Cài driver Android
 appium driver install uiautomator2
-
-# Cài driver iOS (chỉ trên macOS)
-appium driver install xcuitest
-
-# Kiểm tra cài đặt
-appium driver list --installed
+npm install              # cài dependencies của test project
+npm run test:android     # chạy test
 ```
 
-### Cài test dependencies (có thể dùng npm hoặc bun)
+**Khi nào có thể thử Bun?**
 
-```bash
-# Dùng npm (khuyến nghị - nhất quán với Appium)
-npm install
-
-# Hoặc dùng bun (thường hoạt động nhưng không chính thức)
-bun install
-```
+Khi bạn đã quen với Appium rồi và muốn thử tốc độ install nhanh hơn cho test project. Nhưng Appium server vẫn phải cài bằng npm.
 
 ---
 
 ## pnpm thì sao?
 
-pnpm cũng **không được hỗ trợ chính thức** cho Appium server. Nhưng pnpm hoạt động tốt hơn Bun cho các dependencies phức tạp vì:
-- Tương thích với Node.js ecosystem cao hơn
-- Không có vấn đề về binary path như Bun có thể gặp
-
-Nếu muốn dùng pnpm: cài Appium toàn cục bằng npm, còn dependencies dùng pnpm.
+pnpm cũng chưa được hỗ trợ chính thức cho Appium server. Tuy nhiên, pnpm tương thích với Node.js hơn Bun, nên ít gặp vấn đề hơn. Vẫn khuyến nghị dùng npm khi học.
 
 ---
 
 ## Nguồn tham khảo
 
-- [Appium 3 Install Docs](https://appium.io/docs/en/3.2/quickstart/install/)
+- [Appium Install Docs](https://appium.io/docs/en/3.2/quickstart/install/) — ghi rõ "only npm is supported"
 - [Appium GitHub](https://github.com/appium/appium)
-- [Bun vs Node.js 2026](https://strapi.io/blog/bun-vs-nodejs-performance-comparison-guide)
