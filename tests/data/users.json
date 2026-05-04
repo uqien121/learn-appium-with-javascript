@@ -1,0 +1,27 @@
+{
+  "validUser": {
+    "email": "user@example.com",
+    "password": "Password123!"
+  },
+  "invalidUser": {
+    "email": "wrong@example.com",
+    "password": "wrongpassword"
+  },
+  "testUsers": [
+    {
+      "email": "user1@example.com",
+      "password": "Password123!",
+      "expectedResult": "success"
+    },
+    {
+      "email": "user2@example.com",
+      "password": "wrongpass",
+      "expectedResult": "failure"
+    },
+    {
+      "email": "notanemail",
+      "password": "Password123!",
+      "expectedResult": "failure"
+    }
+  ]
+}
